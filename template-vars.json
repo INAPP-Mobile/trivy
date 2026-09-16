@@ -1,0 +1,26 @@
+{
+  "PORT": {
+    "value": "4954",
+    "description": "The port Trivy server listens on. Railway automatically maps this to the public domain."
+  },
+  "TRIVY_CACHE_BACKEND": {
+    "value": "fs",
+    "description": "Cache backend for vulnerability database. 'fs' stores the cache locally (no extra service needed). Set to 'redis://redis:6379' if you deploy a Redis companion."
+  },
+  "TRIVY_LISTEN": {
+    "value": "0.0.0.0:4954",
+    "description": "Listen address for the Trivy server. Must match the PORT above."
+  },
+  "TRIVY_SKIP_DB_UPDATE": {
+    "value": "false",
+    "description": "Set to 'true' to skip automatic vulnerability database updates on startup. Not recommended for production use."
+  },
+  "TRIVY_DB_REPOSITORY": {
+    "value": "mirror.gcr.io/aquasec/trivy-db:2",
+    "description": "OCI repository to retrieve the vulnerability database from. Change this if your region has issues with the default mirror."
+  },
+  "TRIVY_SCANNERS": {
+    "value": "vuln,misconfig,secret,license",
+    "description": "Scanner types to enable. Comma-separated: vuln, misconfig, secret, license. Defaults cover all scan types."
+  }
+}
