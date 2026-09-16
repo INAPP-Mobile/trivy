@@ -14,7 +14,7 @@ Host your own Trivy server on Railway. This template provisions the Trivy API se
 - **Misconfiguration detection** — find insecure settings in Dockerfiles, Kubernetes manifests, Terraform, and more
 - **Secret scanning** — catch accidentally committed API keys, tokens, and credentials in source code
 - **License scanning** — audit open-source license compliance across dependencies
-- **REST API** — integrate with CI/CD pipelines, Kubernetes admission controllers, or developer tooling
+- **gRPC API** — integrate with CI/CD pipelines, Kubernetes admission controllers, or developer tooling
 - **Auto-updating database** — always scans against the latest vulnerability data on startup
 - **Private registry support** — authenticate to Docker Hub, ECR, GCR, ACR, and others via optional env vars
 
@@ -24,12 +24,16 @@ After deployment, the Trivy server is ready at your Railway public domain:
 
 ```bash
 # Check server health
-curl https://your-domain.railway.app/healthz
+curl https://your-domain.up.railway.app/healthz
 
-# Scan an image for vulnerabilities
-curl -X POST https://your-domain.railway.app/trivy/image \
-  -H "Content-Type: application/json" \
-  -d '{"image": "alpine:3.18"}'
+# Scan an image using Trivy client
+trivy client --remote https://your-domain.up.railway.app alpine:3.18
+
+# Scan with specific scanners
+trivy client --remote https://your-domain.up.railway.app --scanners vuln,secret nginx:latest
+
+# Scan a filesystem
+trivy client --remote https://your-domain.up.railway.app fs /path/to/project
 ```
 
 ## Configuration
@@ -57,39 +61,26 @@ To scan images from private registries, set these variables:
 
 For a shared cache across multiple replicas, set `TRIVY_CACHE_BACKEND=redis://redis:6379` and add a Redis companion service.
 
-## API Reference
+## How It Works
 
-Trivy server exposes the following endpoints:
+Trivy server uses **gRPC** for communication (not REST). The typical pattern is:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/healthz` | GET | Health check — returns 200 OK when ready |
-| `/trivy/image` | POST | Scan a container image |
-| `/trivy/filesystem` | POST | Scan a filesystem/directory |
-| `/trivy/repo` | POST | Scan a Git repository |
-| `/trivy/sbom` | POST | Generate an SBOM (Software Bill of Materials) |
+1. Deploy Trivy server on Railway
+2. Install Trivy CLI locally (`brew install trivy` or download from [GitHub releases](https://github.com/aquasecurity/trivy/releases))
+3. Run `trivy client --remote https://your-domain.up.railway.app <target>`
 
-### Example: Scan an image
+The server caches the vulnerability database, so all your CI runners and developer machines share a single cached DB instead of each downloading it independently.
 
-```bash
-curl -X POST https://your-domain.railway.app/trivy/image \
-  -H "Content-Type: application/json" \
-  -d '{
-    "image": "node:18-alpine",
-    "scanners": ["vuln", "secret"]
-  }'
-```
+### Client/Server Mode Notes
 
-### Example: Scan a Git repository
+| Scanner | Runs On |
+|---------|----------|
+| Vulnerability | Server |
+| License | Server |
+| Misconfiguration | Client |
+| Secret | Client |
 
-```bash
-curl -X POST https://your-domain.railway.app/trivy/repo \
-  -H "Content-Type: application/json" \
-  -d '{
-    "repo": "https://github.com/my-org/my-app",
-    "scanners": ["vuln", "misconfig", "secret"]
-  }'
-```
+Misconfiguration and secret scanning run locally on the client to avoid sending sensitive files to the server.
 
 ## Dependencies
 
@@ -100,3 +91,4 @@ This template deploys the official `aquasec/trivy` container image from Docker H
 - The first startup downloads the vulnerability database (~30-50MB). This may take 1-2 minutes.
 - Cache stored with `fs` backend is ephemeral — it resets on service restart. Use Redis for persistence.
 - Railway provides HTTPS termination automatically. No additional SSL configuration needed.
+- The gRPC server listens on port 4954. Railway maps this to the public domain.
