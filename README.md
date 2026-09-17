@@ -6,7 +6,7 @@ An open-source vulnerability, misconfiguration, secret, and license scanner by A
 
 Host your own Trivy server on Railway. This template provisions the Trivy API server with automatic vulnerability database updates on startup.
 
-[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/trivy)
+[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/ZTZEYJ)
 
 ## Features
 
