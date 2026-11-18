@@ -1,4 +1,4 @@
-FROM aquasec/trivy:latest
+FROM aquasec/trivy:0.76.2
 USER root
 EXPOSE 4954
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
