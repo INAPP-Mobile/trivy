@@ -32,8 +32,8 @@ The deploy form pre-fills all required variables. No additional services needed 
 
 **After the first successful deploy:**
 
-1. Open `https://<your-domain>/healthz` to verify the server is running
-2. Use the Trivy client to scan an image: `trivy client --remote https://<your-domain> alpine:3.18`
+1. Open `https://{your-domain}/healthz` to verify the server is running
+2. Use the Trivy client to scan an image: `trivy client --remote https://{your-domain} alpine:3.18`
 
 ## About Hosting
 
